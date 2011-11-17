@@ -12,9 +12,8 @@ var memory = {
 		delete memory.arrOpenImages[i];
 		continue;
 	    }
-	    $(memory.arrOpenImages[i]).find('img').fadeOut(200, function () {
-		delete memory.arrOpenImages[i];
-	    });
+	    $(memory.arrOpenImages[i]).find('img').css('opacity', 0);
+	    delete memory.arrOpenImages[i];
 	}
 	memory.arrOpenImages = [];
     },
@@ -34,18 +33,25 @@ var memory = {
     qrClickHandler: function () {
 	var sender = this;
 	$img = $(this).find('img');
+
 	if (memory.isDone($img)) {
 	    console.log('img already done!');
+	    return;
+	} else if (parseInt($img.css('opacity')) == 1) {
+	    console.log('img alread activated');
+	    return;
+	} else if (memory.arrOpenImages.lenght > 1) {
+	    console.log('can\'t activate more than two images');
 	    return;
 	} else {
 	    console.log('Not done');
 	}
+
 	console.log('In click handler');
 	console.log($img);
-	$img.fadeTo(200, 1, function () {
-	    console.log('In callback');
-	    memory.qrVerify(sender);
-	});
+
+	$img.css('opacity', 1);
+	memory.qrVerify(sender);
     },
     qrVerify: function (o) {
 	var $img = $(o).find('img');
@@ -53,30 +59,24 @@ var memory = {
 	if (memory.arrOpenImages.length < 1) {
 	    memory.addOpenImage(o);
 	} else if (memory.arrOpenImages.length == 1) {
-	    setTimeout(function () {
-		if ($img.attr('src') == $(memory.arrOpenImages[0]).find('img').attr('src')) {
-		    console.log('Found it!');
-		    memory.setDone($img);
-		    memory.setDone($(memory.arrOpenImages[0]).find('img'));
-		} else {
-		    memory.addOpenImage(o);
-		    console.log('Wrong!');
-		}
+	    if ($img.attr('src') == $(memory.arrOpenImages[0]).find('img').attr('src')) {
+		console.log('Found it!');
+		memory.setDone($img);
+		memory.setDone($(memory.arrOpenImages[0]).find('img'));
 		memory.cleanOpenImages();
-	    }, memory.viewBothTimeout);
+	    } else {
+		memory.addOpenImage(o);
+		console.log('Wrong!');
+		setTimeout(memory.cleanOpenImages, memory.viewBothTimeout);
+	    }
 	} else {
 	    console.log('Full');
 	}
     },
     init: function () {
 	console.log('Init...');
-	$('img').fadeOut(200, function () {
-	    console.log('Fading out...');
-	});
-	setTimeout(function () {
-	    console.log('Binding...');
-	    $('.wrapper ul').on('click', 'li', memory.qrClickHandler);
-	}, 200);
+	$('ul li img').css('opacity', 0);
+	$('.wrapper ul').on('click', 'li', memory.qrClickHandler);
     }
 };
 
